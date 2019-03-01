@@ -63,6 +63,7 @@ public class Cli<CliFlagsT extends CliFlags> {
         // inject default commands if needed
         if (!spec.commands().isEmpty() && !hasCommand("help")) {
             commandMap.put("help", new HelpCommand<>(this));
+//            commandMap.put("whatisinstanceid", new WhatIsInstanceIdCommand(this));
         }
     }
 

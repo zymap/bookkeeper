@@ -340,13 +340,13 @@ public class BookieShellTest {
         }
     }
 
-    @Test
-    public void testLastMarkCmd() throws Exception {
-        shell.run(new String[] { "lastmark"});
-        verifyNew(LastMarkCommand.class, times(1)).withNoArguments();
-        verify(mockLastMarkCommand, times(1))
-            .apply(same(shell.bkConf), any(CliFlags.class));
-    }
+//    @Test
+//    public void testLastMarkCmd() throws Exception {
+//        shell.run(new String[] { "lastmark"});
+//        verifyNew(LastMarkCommand.class, times(1)).withNoArguments();
+//        verify(mockLastMarkCommand, times(1))
+//            .apply(same(shell.bkConf), any(CliFlags.class));
+//    }
 
     @Test
     public void testSimpleTestCmd() throws Exception {

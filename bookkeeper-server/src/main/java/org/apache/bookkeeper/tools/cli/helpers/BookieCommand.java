@@ -18,13 +18,19 @@
  */
 package org.apache.bookkeeper.tools.cli.helpers;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.apache.bookkeeper.common.net.ServiceURI;
 import org.apache.bookkeeper.conf.ServerConfiguration;
+import org.apache.bookkeeper.discover.RegistrationManager;
+import org.apache.bookkeeper.meta.MetadataDrivers;
+import org.apache.bookkeeper.meta.exceptions.MetadataException;
 import org.apache.bookkeeper.tools.common.BKCommand;
 import org.apache.bookkeeper.tools.common.BKFlags;
 import org.apache.bookkeeper.tools.framework.CliFlags;
 import org.apache.bookkeeper.tools.framework.CliSpec;
 import org.apache.commons.configuration.CompositeConfiguration;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * This is a mixin for bookie related commands to extends.
@@ -47,8 +53,26 @@ public abstract class BookieCommand<BookieFlagsT extends CliFlags> extends BKCom
             serverConf.setMetadataServiceUri(serviceURI.getUri().toString());
         }
 
-        return apply(serverConf, cmdFlags);
+//        return apply(serverConf, cmdFlags);
+//    }
+
+        try {
+            return MetadataDrivers.runFunctionWithRegistrationManager(serverConf, registrationManager -> {
+                apply(serverConf, registrationManager, cmdFlags);
+                return true;
+            });
+        } catch (MetadataException | ExecutionException | UncheckedExecutionException e) {
+            Throwable cause = e;
+            if (!(e instanceof MetadataException) && null != e.getCause()) {
+                cause = e.getCause();
+            }
+            spec.console().println("Failed to process bookie command '" + name() + "'");
+            cause.printStackTrace(spec.console());
+            return false;
+        }
     }
 
-    public abstract boolean apply(ServerConfiguration conf, BookieFlagsT cmdFlags);
+    public abstract boolean apply(ServerConfiguration conf, RegistrationManager rm, BookieFlagsT cmdFlags);
+
+//    public abstract boolean apply(ServerConfiguration conf, BookieFlagsT cmdFlags);
 }

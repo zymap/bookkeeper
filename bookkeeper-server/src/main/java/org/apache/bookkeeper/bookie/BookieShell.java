@@ -1401,7 +1401,8 @@ public class BookieShell implements Tool {
 
                 LOG.info("Read {} entries from ledger {}", entries, lh.getId());
             } catch (Exception e) {
-                LOG.warn("Error in bookie sanity test", e);
+                LOG.warn("Error in bookie sanity test", e)
+                ;
                 return -1;
             } finally {
                 if (lh != null) {
@@ -1657,7 +1658,7 @@ public class BookieShell implements Tool {
         @Override
         public int runCmd(CommandLine c) throws Exception {
             LastMarkCommand command = new LastMarkCommand();
-            command.apply(bkConf, new CliFlags());
+//            command.apply(bkConf, new CliFlags());
             return 0;
         }
 
