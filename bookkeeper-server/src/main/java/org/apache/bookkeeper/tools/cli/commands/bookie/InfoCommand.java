@@ -20,8 +20,8 @@ import java.util.Map;
 
 public class InfoCommand extends BookieCommand<CliFlags> {
 
-    private static String NAME = "info";
-    private static String DESC = "Retrieve bookie info such as free and total disk space.";
+    private static final String NAME = "info";
+    private static final String DESC = "Retrieve bookie info such as free and total disk space.";
 
     public InfoCommand() {
         super(CliSpec.newBuilder()
