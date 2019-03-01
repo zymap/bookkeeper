@@ -1,0 +1,4 @@
+org.apache.bookkeeper.stream.cli.ClusterCommandGroup
+org.apache.bookkeeper.stream.cli.NamespaceCommandGroup
+org.apache.bookkeeper.stream.cli.TableAdminCommandGroup
+org.apache.bookkeeper.stream.cli.TableCommandGroup

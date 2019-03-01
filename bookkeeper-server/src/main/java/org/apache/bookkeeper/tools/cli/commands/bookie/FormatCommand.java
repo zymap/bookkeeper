@@ -66,11 +66,10 @@ public class FormatCommand extends BookieCommand<FormatCommand.FormatFlags> {
 
     public FormatCommand(FormatFlags flags, PrintStream console) {
         super(CliSpec.<FormatFlags>newBuilder().
-                withName(NAME).
-                withDescription(DESC).
-//                build());
-                withFlags(flags).
-                withConsole(console).
+            withName(NAME).
+            withDescription(DESC).
+            withFlags(flags).
+            withConsole(console).
             build());
     }
 
