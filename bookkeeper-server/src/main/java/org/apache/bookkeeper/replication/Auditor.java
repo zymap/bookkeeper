@@ -24,6 +24,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.common.util.concurrent.SettableFuture;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -610,6 +611,7 @@ public class Auditor {
                                                  newzk);
         final BookKeeperAdmin admin = new BookKeeperAdmin(client, statsLogger);
 
+        RateLimiter limiter = RateLimiter.create(conf.getAuditorLedgerCheckRateLimit());
         try {
             final LedgerChecker checker = new LedgerChecker(client);
 
@@ -627,6 +629,7 @@ public class Auditor {
                     FutureUtils.complete(processFuture, null);
                     return;
                 }
+                limiter.acquire();
 
                 admin.asyncOpenLedgerNoRecovery(ledgerId, (rc, lh, ctx) -> {
                     if (Code.OK == rc) {
