@@ -37,4 +37,4 @@ jobs:
         with:
           java-version: 1.8
       - name: Validate pull request style
-        run: mvn clean package apache-rat:check checkstyle:check -Ddistributedlog -Dstream -DskipTests -Dorg.slf4j.simpleLogger.defaultLogLevel=ERROR
+        run: mvn clean apache-rat:check checkstyle:check package -Ddistributedlog -Dstream -DskipTests -Dorg.slf4j.simpleLogger.defaultLogLevel=ERROR
