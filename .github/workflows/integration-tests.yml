@@ -17,7 +17,7 @@
 # under the License.
 #
 
-name: Integratino Tests
+name: Integration Tests
 
 on:
   pull_request:
