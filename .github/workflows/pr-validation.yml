@@ -26,7 +26,7 @@ on:
 
 
 jobs:
-  build:
+  check:
 
     runs-on: ubuntu-latest
 
@@ -36,5 +36,5 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Build with Maven
-        run: mvn clean apache-rat:check checkstyle:check -Ddistributedlog -Dstream -DskipTests -Dorg.slf4j.simpleLogger.defaultLogLevel=ERROR
+      - name: Validate pull request style
+        run: mvn clean package apache-rat:check checkstyle:check -Ddistributedlog -Dstream -DskipTests -Dorg.slf4j.simpleLogger.defaultLogLevel=ERROR
