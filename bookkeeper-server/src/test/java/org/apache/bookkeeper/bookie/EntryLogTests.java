@@ -74,8 +74,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Tests for EntryLog.
  */
-public class EntryLogTest {
-    private static final Logger LOG = LoggerFactory.getLogger(EntryLogTest.class);
+public class EntryLogTests {
+    private static final Logger LOG = LoggerFactory.getLogger(EntryLogTests.class);
 
     final List<File> tempDirs = new ArrayList<File>();
     final Random rand = new Random();
