@@ -49,4 +49,4 @@ jobs:
         run: mvn -pl bookkeeper-server test -Dtest="org.apache.bookkeeper.bookie.InterleavedLederStorageTest" -DfailIfNoTests=false -Dorg.slf4j.simpleLogger.defaultLogLevel=ERROR
 
       - name: Run bookie tests
-        run: mvn -pl bookkeeper-server test -Dtest="org.apache.bookkeeper.bookie.**, !org.apache.bookkeeper.bookie.EntryLogTest" -DfailIfNoTests=false -Dorg.slf4j.simpleLogger.defaultLogLevel=ERROR
+        run: mvn -pl bookkeeper-server test -Dtest="org.apache.bookkeeper.bookie.**, !org.apache.bookkeeper.bookie.EntryLogTest, !org.apache.bookkeeper.bookie.InterleavedLederStorageTest" -DfailIfNoTests=false -Dorg.slf4j.simpleLogger.defaultLogLevel=ERROR
