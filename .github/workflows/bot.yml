@@ -10,12 +10,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Debug
+        run: echo ${{ toJson(github) }}
+
       - name: Bot actions
         uses: zymap/bot@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.BKBOT_TOKEN }}
         with:
-          repo_owner: apache
+          repo_owner: zymap
           repo_name: bookkeeper
           rerun_cmd: rerun failure checks
           comment: ${{ github.event.comment.body }}
