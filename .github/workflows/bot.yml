@@ -15,7 +15,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.BKBOT_TOKEN }}
         with:
-          repo_owner: apache
+          repo_owner: zymap
           repo_name: bookkeeper
           rerun_cmd: rerun failure checks
           comment: ${{ github.event.comment.body }}
