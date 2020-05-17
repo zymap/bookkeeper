@@ -10,6 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Debug
+        run: echo ${{ toJson(github) }}
+
       - name: Bot actions
         uses: zymap/bot@v1.0.0
         env:
