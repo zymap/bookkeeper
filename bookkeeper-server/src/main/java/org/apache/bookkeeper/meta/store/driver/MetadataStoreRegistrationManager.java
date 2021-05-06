@@ -2,8 +2,8 @@ package org.apache.bookkeeper.meta.store.driver;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.bookkeeper.meta.store.driver.MetadataStoreUtils.getBookiesPath;
+import static org.apache.bookkeeper.meta.store.driver.MetadataStoreUtils.getClusterInstanceIdPath;
 import static org.apache.bookkeeper.meta.store.driver.MetadataStoreUtils.getCookiePath;
-import static org.apache.bookkeeper.meta.store.driver.MetadataStoreUtils.getReadonlyBookiePath;
 import static org.apache.bookkeeper.meta.store.driver.MetadataStoreUtils.getWritableBookiePath;
 import static org.apache.bookkeeper.meta.store.driver.MetadataStoreUtils.msResult;
 
@@ -41,7 +41,12 @@ public class MetadataStoreRegistrationManager implements RegistrationManager {
 
     @Override
     public String getClusterInstanceId() throws BookieException {
-        return null;
+        Optional<GetResult> resp = msResult(store.get(getClusterInstanceIdPath(scope)));
+        if (resp.isPresent()) {
+            return new String(resp.get().getValue());
+        } else {
+            throw new BookieException.MetadataStoreException("BookKeeper is not initialized under '" + scope + "' yet");
+        }
     }
 
     @Override
