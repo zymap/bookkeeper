@@ -84,6 +84,10 @@ final class MetadataStoreUtils {
         return UUID.fromString(keyParts[keyParts.length - 1]);
     }
 
+    static long parseLedgerId(String path) {
+        return parseLedgerKey(path).getLeastSignificantBits();
+    }
+
     static String getBookiesPath(String scope) {
         return String.format("%s/%s", scope, MEMBERS_NODE);
     }
