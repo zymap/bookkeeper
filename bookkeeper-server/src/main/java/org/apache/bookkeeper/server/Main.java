@@ -45,6 +45,7 @@ import org.apache.bookkeeper.server.http.BKHttpServiceProvider;
 import org.apache.bookkeeper.server.service.AutoRecoveryService;
 import org.apache.bookkeeper.server.service.BookieService;
 import org.apache.bookkeeper.server.service.HttpService;
+import org.apache.bookkeeper.server.service.JraftService;
 import org.apache.bookkeeper.server.service.ScrubberService;
 import org.apache.bookkeeper.server.service.StatsProviderService;
 import org.apache.bookkeeper.stats.StatsLogger;
@@ -334,6 +335,11 @@ public class Main {
                 new HttpService(provider, conf, rootStatsLogger);
             serverBuilder.addComponent(httpService);
             log.info("Load lifecycle component : {}", HttpService.class.getName());
+        }
+
+        if (conf.getServerConf().isJraftServerEnabled()) {
+            serverBuilder.addComponent(
+                    new JraftService(conf.getServerConf().getJraftServerConfigPath(), conf, rootStatsLogger));
         }
 
         // 5. build extra services

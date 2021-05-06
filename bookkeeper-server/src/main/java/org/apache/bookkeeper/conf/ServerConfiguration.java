@@ -297,6 +297,10 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
     // Certificate role based authorization
     protected static final String AUTHORIZED_ROLES = "authorizedRoles";
 
+    // Http Server parameters
+    protected static final String JRAFT_SERVER_ENABLED = "jraftServerEnabled";
+    protected static final String JRAFT_SERVER_CONFIG_PATH = "jraftServerConfigPath";
+
     /**
      * Construct a default configuration object.
      */
@@ -3336,6 +3340,48 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
     public ServerConfiguration setServerWriteBufferLowWaterMark(int waterMark) {
         setProperty(SERVER_WRITEBUFFER_LOW_WATER_MARK, waterMark);
         return this;
+    }
+
+    /**
+     * Get whether to start the jraft server or not.
+     *
+     * @return true - if jraft server should start
+     */
+    public boolean isJraftServerEnabled() {
+        return getBoolean(JRAFT_SERVER_ENABLED, false);
+    }
+
+    /**
+     * Set whether to start the jraft server or not.
+     *
+     * @param enabled
+     *            - true if we should start jraft server
+     * @return ServerConfiguration
+     */
+    public ServerConfiguration setJraftServerEnabled(boolean enabled) {
+        setProperty(JRAFT_SERVER_ENABLED, enabled);
+        return this;
+    }
+
+    /**
+     * Set jtaft server config path.
+     *
+     * @param jraftServerConfigPath
+     *            - the path of jraft server config
+     * @return ServerConfiguration
+     */
+    public ServerConfiguration setJraftServerConfigPath(String jraftServerConfigPath) {
+        setProperty(JRAFT_SERVER_CONFIG_PATH, jraftServerConfigPath);
+        return this;
+    }
+
+    /**
+     * Set jtaft server config path.
+     *
+     * @return ServerConfiguration
+     */
+    public String getJraftServerConfigPath() {
+        return this.getString(JRAFT_SERVER_CONFIG_PATH, "conf/rheakv_example_node.yaml");
     }
 
     /**

@@ -1,0 +1,17 @@
+##RheaKVStoreOptions
+---
+clusterName: rhea_example
+
+placementDriverOptions:
+  fake: true
+
+storeEngineOptions:
+  rocksDBOptions:
+    dbPath: rhea_db/
+  raftDataPath: rhea_raft/
+  serverAddress:
+    ip: 127.0.0.1
+    port: 8181
+
+initialServerList: 127.0.0.1:8181
+
