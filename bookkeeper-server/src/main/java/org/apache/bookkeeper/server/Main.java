@@ -301,6 +301,11 @@ public class Main {
         serverBuilder.addComponent(statsProviderService);
         log.info("Load lifecycle component : {}", StatsProviderService.class.getName());
 
+        if (conf.getServerConf().isJraftServerEnabled()) {
+            serverBuilder.addComponent(
+                    new JraftService(conf.getServerConf().getJraftServerConfigPath(), conf, rootStatsLogger));
+        }
+
         // 2. build bookie server
         BookieService bookieService =
             new BookieService(conf, rootStatsLogger, bookieServiceInfoProvider);
@@ -335,11 +340,6 @@ public class Main {
                 new HttpService(provider, conf, rootStatsLogger);
             serverBuilder.addComponent(httpService);
             log.info("Load lifecycle component : {}", HttpService.class.getName());
-        }
-
-        if (conf.getServerConf().isJraftServerEnabled()) {
-            serverBuilder.addComponent(
-                    new JraftService(conf.getServerConf().getJraftServerConfigPath(), conf, rootStatsLogger));
         }
 
         // 5. build extra services
