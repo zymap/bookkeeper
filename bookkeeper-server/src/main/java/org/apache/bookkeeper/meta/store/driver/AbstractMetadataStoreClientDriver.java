@@ -6,6 +6,7 @@ import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.discover.RegistrationClient;
 import org.apache.bookkeeper.meta.MetadataClientDriver;
 import org.apache.bookkeeper.meta.exceptions.MetadataException;
+import org.apache.bookkeeper.meta.store.api.extended.SessionEvent;
 import org.apache.bookkeeper.stats.StatsLogger;
 
 public abstract class AbstractMetadataStoreClientDriver extends MetadataStoreDriverBase implements MetadataClientDriver {
@@ -26,12 +27,11 @@ public abstract class AbstractMetadataStoreClientDriver extends MetadataStoreDri
     }
 
     @Override
-    public void close() {
-
-    }
-
-    @Override
     public void setSessionStateListener(SessionStateListener sessionStateListener) {
-
+        store.registerSessionListener(sessionEvent -> {
+            if (sessionEvent == SessionEvent.SessionLost) {
+                sessionStateListener.onSessionExpired();
+            }
+        });
     }
 }

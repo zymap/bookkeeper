@@ -16,7 +16,6 @@ import org.apache.bookkeeper.discover.BookieServiceInfo;
 import org.apache.bookkeeper.discover.RegistrationManager;
 import org.apache.bookkeeper.meta.LedgerLayout;
 import org.apache.bookkeeper.meta.store.api.GetResult;
-import org.apache.bookkeeper.meta.store.api.Stat;
 import org.apache.bookkeeper.meta.store.api.extended.MetadataStoreExtended;
 import org.apache.bookkeeper.meta.store.util.ObjectMapperFactory;
 import org.apache.bookkeeper.net.BookieId;
@@ -28,10 +27,12 @@ import org.apache.bookkeeper.versioning.Versioned;
 public class MetadataStoreRegistrationManager implements RegistrationManager {
     private final MetadataStoreExtended store;
     private final String scope;
+    private final RegistrationManager.RegistrationListener registrationListener;
 
-    public MetadataStoreRegistrationManager(MetadataStoreExtended store, String scope) {
+    public MetadataStoreRegistrationManager(MetadataStoreExtended store, String scope, RegistrationListener registrationListener) {
         this.store = store;
         this.scope = scope;
+        this.registrationListener = registrationListener;
     }
 
     @Override

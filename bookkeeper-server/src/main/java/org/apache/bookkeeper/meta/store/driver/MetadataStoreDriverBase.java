@@ -19,9 +19,13 @@ public abstract class MetadataStoreDriverBase implements AutoCloseable {
     protected LedgerManagerFactory ledgerManagerFactory;
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (this.store != null) {
-            this.store.close();
+            try {
+                this.store.close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
