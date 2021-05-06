@@ -8,9 +8,9 @@ import org.apache.bookkeeper.meta.store.api.extended.MetadataStoreExtended;
 import org.apache.bookkeeper.meta.store.driver.AbstractMetadataStoreClientDriver;
 import org.apache.bookkeeper.meta.store.impl.ZKMetadataStore;
 
-public class ZKMetadataStoreClientDriver extends AbstractMetadataStoreClientDriver implements ZKMetadataConstants {
+public class MsZKMetadataStoreClientDriver extends AbstractMetadataStoreClientDriver implements ZKMetadataConstants {
     static {
-        MetadataDrivers.registerClientDriver(SCHEME, ZKMetadataStoreClientDriver.class);
+        MetadataDrivers.registerClientDriver(SCHEME, MsZKMetadataStoreClientDriver.class);
     }
 
     @Override
@@ -20,6 +20,7 @@ public class ZKMetadataStoreClientDriver extends AbstractMetadataStoreClientDriv
 
     @Override
     protected MetadataStoreExtended createMetadataStore(URI metadataServiceURI) throws MetadataStoreException {
-        return new ZKMetadataStore(metadataServiceURI.getHost(), MetadataStoreConfig.builder().build());
+        return new MSMetadataStore(metadataServiceURI.getHost(), MetadataStoreConfig.builder().build());
+//        return new ZKMetadataStore(metadataServiceURI.getHost(), MetadataStoreConfig.builder().build());
     }
 }
