@@ -7,9 +7,9 @@ import org.apache.bookkeeper.meta.store.api.MetadataStoreException;
 import org.apache.bookkeeper.meta.store.api.extended.MetadataStoreExtended;
 import org.apache.bookkeeper.meta.store.driver.AbstractMetadataStoreClientDriver;
 
-public class RaftZKMetadataStoreClientDriver extends AbstractMetadataStoreClientDriver implements RaftMetadataConstants {
+public class RaftMetadataStoreClientDriver extends AbstractMetadataStoreClientDriver implements RaftMetadataConstants {
     static {
-        MetadataDrivers.registerClientDriver(SCHEME, RaftZKMetadataStoreClientDriver.class);
+        MetadataDrivers.registerClientDriver(SCHEME, RaftMetadataStoreClientDriver.class);
     }
 
     @Override
