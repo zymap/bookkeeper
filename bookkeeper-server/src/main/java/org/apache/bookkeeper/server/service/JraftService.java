@@ -25,10 +25,12 @@ import com.alipay.sofa.jraft.rhea.options.configured.PlacementDriverOptionsConfi
 import com.alipay.sofa.jraft.rhea.options.configured.RheaKVStoreOptionsConfigured;
 import com.alipay.sofa.jraft.rhea.options.configured.RocksDBOptionsConfigured;
 import com.alipay.sofa.jraft.rhea.options.configured.StoreEngineOptionsConfigured;
+import com.alipay.sofa.jraft.rhea.util.concurrent.DistributedLock;
 import com.alipay.sofa.jraft.util.Endpoint;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.common.component.ComponentInfoPublisher;
 import org.apache.bookkeeper.meta.MetadataBookieDriver;
@@ -78,37 +80,17 @@ public class JraftService extends ServerLifecycleComponent {
 
     @Override
     protected void doStart() {
-        CountDownLatch latch = new CountDownLatch(1);
         jraftNode.start();
-        jraftNode.getRheaKVStore().addLeaderStateListener(-1, new LeaderStateListener() {
-            @Override
-            public void onLeaderStart(long newTerm) {
-                log.info("Leader of term [{}] started", newTerm);
-                latch.countDown();
-            }
-
-            @Override
-            public void onLeaderStop(long oldTerm) {
-                log.info("Leader of term [{}] stopped", oldTerm);
-            }
-        });
-        if (jraftNode.getRheaKVStore().isLeader(-1)) {
-            latch.countDown();
-        }
-        try {
-            latch.await();
-        } catch (InterruptedException ignored) {
-            return;
-        }
-        if (jraftNode.getRheaKVStore().isLeader(-1)) {
-            try {
-                try (MetadataBookieDriver driver = MetadataDrivers.getBookieDriver(URI.create(conf.getServerConf().getMetadataServiceUri()))) {
-                    driver.initialize(conf.getServerConf(), null, statsLogger);
-                    driver.getRegistrationManager()
-                            .initNewCluster();
-                }
+        DistributedLock<byte[]> lock = jraftNode.getRheaKVStore().getDistributedLock("init-cluster", 30, TimeUnit.SECONDS);
+        if (lock.tryLock()) {
+            try (MetadataBookieDriver driver = MetadataDrivers.getBookieDriver(URI.create(conf.getServerConf().getMetadataServiceUri()))) {
+                driver.initialize(conf.getServerConf(), null, statsLogger);
+                driver.getRegistrationManager()
+                        .initNewCluster();
             } catch (Exception e) {
                 throw new RuntimeException(e);
+            } finally {
+                lock.unlock();
             }
         }
     }
