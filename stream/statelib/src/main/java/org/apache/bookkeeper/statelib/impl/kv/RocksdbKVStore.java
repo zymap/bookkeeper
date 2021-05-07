@@ -294,8 +294,7 @@ public class RocksdbKVStore<K, V> implements KVStore<K, V> {
         // initialize the db options
 
         final BlockBasedTableConfig tableConfig = new BlockBasedTableConfig();
-        final Cache cache = new LRUCache(BLOCK_CACHE_SIZE);
-        tableConfig.setBlockCache(cache);
+        tableConfig.setBlockCacheSize(BLOCK_CACHE_SIZE);
         tableConfig.setBlockSize(BLOCK_SIZE);
         tableConfig.setChecksumType(DEFAULT_CHECKSUM_TYPE);
 

@@ -45,6 +45,7 @@ import org.apache.bookkeeper.server.http.BKHttpServiceProvider;
 import org.apache.bookkeeper.server.service.AutoRecoveryService;
 import org.apache.bookkeeper.server.service.BookieService;
 import org.apache.bookkeeper.server.service.HttpService;
+import org.apache.bookkeeper.server.service.JraftService;
 import org.apache.bookkeeper.server.service.ScrubberService;
 import org.apache.bookkeeper.server.service.StatsProviderService;
 import org.apache.bookkeeper.stats.StatsLogger;
@@ -299,6 +300,11 @@ public class Main {
         StatsLogger rootStatsLogger = statsProviderService.getStatsProvider().getStatsLogger("");
         serverBuilder.addComponent(statsProviderService);
         log.info("Load lifecycle component : {}", StatsProviderService.class.getName());
+
+        if (conf.getServerConf().isJraftServerEnabled()) {
+            serverBuilder.addComponent(
+                    new JraftService(conf.getServerConf().getJraftServerConfigPath(), conf, rootStatsLogger));
+        }
 
         // 2. build bookie server
         BookieService bookieService =

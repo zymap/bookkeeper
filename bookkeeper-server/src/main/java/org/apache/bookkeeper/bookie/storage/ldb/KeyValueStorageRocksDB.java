@@ -126,21 +126,21 @@ public class KeyValueStorageRocksDB implements KeyValueStorage {
                 }
                 options.setLevelZeroFileNumCompactionTrigger(numFilesInLevel0);
                 options.setMaxBytesForLevelBase(maxSizeInLevel1MB * 1024 * 1024);
-                options.setMaxBackgroundJobs(32);
+                options.setMaxBackgroundCompactions(16);
+                options.setMaxBackgroundFlushes(16);
                 options.setIncreaseParallelism(32);
                 options.setMaxTotalWalSize(512 * 1024 * 1024);
                 options.setMaxOpenFiles(-1);
                 options.setTargetFileSizeBase(sstSizeMB * 1024 * 1024);
                 options.setDeleteObsoleteFilesPeriodMicros(TimeUnit.HOURS.toMicros(1));
 
-                final Cache cache = new LRUCache(blockCacheSize);
                 BlockBasedTableConfig tableOptions = new BlockBasedTableConfig();
                 tableOptions.setBlockSize(blockSize);
-                tableOptions.setBlockCache(cache);
                 tableOptions.setFormatVersion(2);
+                tableOptions.setBlockCacheSize(blockCacheSize);
                 tableOptions.setChecksumType(ChecksumType.kxxHash);
                 if (bloomFilterBitsPerKey > 0) {
-                    tableOptions.setFilterPolicy(new BloomFilter(bloomFilterBitsPerKey, false));
+                    tableOptions.setFilter(new BloomFilter(bloomFilterBitsPerKey, false));
                 }
 
                 // Options best suited for HDDs
