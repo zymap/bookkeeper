@@ -1,17 +1,16 @@
 package org.apache.bookkeeper.meta.store.driver.impl.zk;
 
 import java.net.URI;
-import org.apache.bookkeeper.conf.AbstractConfiguration;
 import org.apache.bookkeeper.meta.MetadataDrivers;
 import org.apache.bookkeeper.meta.store.api.MetadataStoreConfig;
 import org.apache.bookkeeper.meta.store.api.MetadataStoreException;
 import org.apache.bookkeeper.meta.store.api.extended.MetadataStoreExtended;
-import org.apache.bookkeeper.meta.store.driver.AbstractMetadataStoreBookieDriver;
+import org.apache.bookkeeper.meta.store.driver.AbstractMetadataStoreClientDriver;
 import org.apache.bookkeeper.meta.store.impl.ZKMetadataStore;
 
-public class ZKMetadataStoreBookieDriver extends AbstractMetadataStoreBookieDriver implements ZKMetadataConstants {
+public class MsZKMetadataStoreClientDriver extends AbstractMetadataStoreClientDriver implements ZKMetadataConstants {
     static {
-        MetadataDrivers.registerBookieDriver(SCHEME, ZKMetadataStoreBookieDriver.class);
+        MetadataDrivers.registerClientDriver(SCHEME, MsZKMetadataStoreClientDriver.class);
     }
 
     @Override

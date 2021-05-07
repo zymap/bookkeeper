@@ -1,16 +1,15 @@
-package org.apache.bookkeeper.meta.store.driver.impl.zk;
+package org.apache.bookkeeper.meta.store.driver.impl.raft;
 
 import java.net.URI;
 import org.apache.bookkeeper.meta.MetadataDrivers;
 import org.apache.bookkeeper.meta.store.api.MetadataStoreConfig;
 import org.apache.bookkeeper.meta.store.api.MetadataStoreException;
 import org.apache.bookkeeper.meta.store.api.extended.MetadataStoreExtended;
-import org.apache.bookkeeper.meta.store.driver.AbstractMetadataStoreClientDriver;
-import org.apache.bookkeeper.meta.store.impl.ZKMetadataStore;
+import org.apache.bookkeeper.meta.store.driver.AbstractMetadataStoreBookieDriver;
 
-public class ZKMetadataStoreClientDriver extends AbstractMetadataStoreClientDriver implements ZKMetadataConstants {
+public class RaftMetadataStoreBookieDriver extends AbstractMetadataStoreBookieDriver implements RaftMetadataConstants {
     static {
-        MetadataDrivers.registerClientDriver(SCHEME, ZKMetadataStoreClientDriver.class);
+        MetadataDrivers.registerBookieDriver(SCHEME, RaftMetadataStoreBookieDriver.class);
     }
 
     @Override
@@ -20,6 +19,6 @@ public class ZKMetadataStoreClientDriver extends AbstractMetadataStoreClientDriv
 
     @Override
     protected MetadataStoreExtended createMetadataStore(URI metadataServiceURI) throws MetadataStoreException {
-        return new ZKMetadataStore(metadataServiceURI.getHost(), MetadataStoreConfig.builder().build());
+        return new RaftMetadataStore(metadataServiceURI.getHost(), MetadataStoreConfig.builder().build());
     }
 }
