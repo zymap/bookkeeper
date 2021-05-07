@@ -134,6 +134,11 @@ public class MetadataStoreRegistrationManager implements RegistrationManager {
                 MetadataStoreLedgerManagerFactory.VERSION
         );
 
+        if (msResult(store.exists(rootScopeKey))) {
+            log.info("cluster at scope [{}] already exists");
+            return false;
+        }
+
         // `${scope}`
         msResult(store.put(rootScopeKey, MetadataStoreConstants.EMPTY_BYTES, Optional.empty()));
         // `${scope}/layout`

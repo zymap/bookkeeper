@@ -17,6 +17,7 @@
  */
 package org.apache.bookkeeper.server.service;
 
+import com.alipay.sofa.jraft.rhea.LeaderStateListener;
 import com.alipay.sofa.jraft.rhea.options.PlacementDriverOptions;
 import com.alipay.sofa.jraft.rhea.options.RheaKVStoreOptions;
 import com.alipay.sofa.jraft.rhea.options.StoreEngineOptions;
@@ -25,16 +26,22 @@ import com.alipay.sofa.jraft.rhea.options.configured.RheaKVStoreOptionsConfigure
 import com.alipay.sofa.jraft.rhea.options.configured.RocksDBOptionsConfigured;
 import com.alipay.sofa.jraft.rhea.options.configured.StoreEngineOptionsConfigured;
 import com.alipay.sofa.jraft.util.Endpoint;
+import java.io.IOException;
+import java.net.URI;
+import java.util.concurrent.CountDownLatch;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.common.component.ComponentInfoPublisher;
+import org.apache.bookkeeper.meta.MetadataBookieDriver;
+import org.apache.bookkeeper.meta.MetadataDrivers;
 import org.apache.bookkeeper.server.component.ServerLifecycleComponent;
 import org.apache.bookkeeper.server.conf.BookieConfiguration;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.apache.bookkeeper.util.JraftYamlUtil;
-import java.io.IOException;
 
 /**
  * A {@link ServerLifecycleComponent} that runs jraft service.
  */
+@Slf4j
 public class JraftService extends ServerLifecycleComponent {
 
     public static final String NAME = "jraft-service";
@@ -42,8 +49,8 @@ public class JraftService extends ServerLifecycleComponent {
     private JraftNode jraftNode;
 
     public JraftService(String configPath,
-                       BookieConfiguration conf,
-                       StatsLogger statsLogger) {
+                        BookieConfiguration conf,
+                        StatsLogger statsLogger) {
         super(NAME, conf, statsLogger);
         RheaKVStoreOptions options = JraftYamlUtil.readConfig(configPath);
         final PlacementDriverOptions pdOpts = PlacementDriverOptionsConfigured.newConfigured()
@@ -71,7 +78,39 @@ public class JraftService extends ServerLifecycleComponent {
 
     @Override
     protected void doStart() {
+        CountDownLatch latch = new CountDownLatch(1);
         jraftNode.start();
+        jraftNode.getRheaKVStore().addLeaderStateListener(-1, new LeaderStateListener() {
+            @Override
+            public void onLeaderStart(long newTerm) {
+                log.info("Leader of term [{}] started", newTerm);
+                latch.countDown();
+            }
+
+            @Override
+            public void onLeaderStop(long oldTerm) {
+                log.info("Leader of term [{}] stopped", oldTerm);
+            }
+        });
+        if (jraftNode.getRheaKVStore().isLeader(-1)) {
+            latch.countDown();
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException ignored) {
+            return;
+        }
+        if (jraftNode.getRheaKVStore().isLeader(-1)) {
+            try {
+                try (MetadataBookieDriver driver = MetadataDrivers.getBookieDriver(URI.create(conf.getServerConf().getMetadataServiceUri()))) {
+                    driver.initialize(conf.getServerConf(), null, statsLogger);
+                    driver.getRegistrationManager()
+                            .initNewCluster();
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Override

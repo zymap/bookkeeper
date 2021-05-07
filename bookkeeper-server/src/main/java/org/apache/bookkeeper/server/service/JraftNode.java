@@ -28,7 +28,7 @@ public class JraftNode {
 
     private final RheaKVStoreOptions options;
 
-    private RheaKVStore rheaKVStore;
+    private DefaultRheaKVStore rheaKVStore;
 
     public JraftNode(RheaKVStoreOptions options) {
         this.options = options;
@@ -43,7 +43,7 @@ public class JraftNode {
         this.rheaKVStore.shutdown();
     }
 
-    public RheaKVStore getRheaKVStore() {
+    public DefaultRheaKVStore getRheaKVStore() {
         return rheaKVStore;
     }
 }

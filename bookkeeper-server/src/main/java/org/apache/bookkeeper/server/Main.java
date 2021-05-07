@@ -302,8 +302,8 @@ public class Main {
         log.info("Load lifecycle component : {}", StatsProviderService.class.getName());
 
         if (conf.getServerConf().isJraftServerEnabled()) {
-            serverBuilder.addComponent(
-                    new JraftService(conf.getServerConf().getJraftServerConfigPath(), conf, rootStatsLogger));
+            JraftService jraft = new JraftService(conf.getServerConf().getJraftServerConfigPath(), conf, rootStatsLogger);
+            jraft.start();
         }
 
         // 2. build bookie server
