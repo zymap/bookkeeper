@@ -78,6 +78,7 @@ public class Main {
         BK_OPTS.addOption("m", "zkledgerpath", true, "Zookeeper ledgers root path");
         BK_OPTS.addOption("p", "bookieport", true, "bookie port exported");
         BK_OPTS.addOption("j", "journal", true, "bookie journal directory");
+        BK_OPTS.addOption("f", "raftport", true, "raft port exported");
         Option indexDirs = new Option ("i", "indexdirs", true, "bookie index directories");
         indexDirs.setArgs(10);
         BK_OPTS.addOption(indexDirs);
@@ -172,6 +173,13 @@ public class Main {
                 log.info("Get cmdline bookie port: {}", sPort);
                 Integer iPort = Integer.parseInt(sPort);
                 conf.setBookiePort(iPort.intValue());
+            }
+
+            if (cmdLine.hasOption('f')) {
+                String sPort = cmdLine.getOptionValue('f');
+                log.info("Get cmdline raft port: {}", sPort);
+                int iPort = Integer.parseInt(sPort);
+                conf.setRaftPort(iPort);
             }
 
             if (cmdLine.hasOption('j')) {

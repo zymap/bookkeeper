@@ -149,6 +149,7 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
 
     // Bookie Parameters
     protected static final String BOOKIE_PORT = "bookiePort";
+    protected static final String RAFT_PORT = "raftPort";
     protected static final String LISTENING_INTERFACE = "listeningInterface";
     protected static final String ALLOW_LOOPBACK = "allowLoopback";
     protected static final String ADVERTISED_ADDRESS = "advertisedAddress";
@@ -958,6 +959,27 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
      */
     public ServerConfiguration setBookiePort(int port) {
         this.setProperty(BOOKIE_PORT, Integer.toString(port));
+        return this;
+    }
+
+    /**
+     * Get bookie port that bookie server listen on.
+     *
+     * @return bookie port
+     */
+    public int getRaftPort() {
+        return this.getInt(RAFT_PORT, 8181);
+    }
+
+    /**
+     * Set new bookie port that bookie server listen on.
+     *
+     * @param port
+     *          Port to listen on
+     * @return server configuration
+     */
+    public ServerConfiguration setRaftPort(int port) {
+        this.setProperty(RAFT_PORT, Integer.toString(port));
         return this;
     }
 

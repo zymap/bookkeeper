@@ -18,6 +18,7 @@
 package org.apache.bookkeeper.server.service;
 
 import com.alipay.sofa.jraft.rhea.LeaderStateListener;
+import com.alipay.sofa.jraft.rhea.errors.RouteTableException;
 import com.alipay.sofa.jraft.rhea.options.PlacementDriverOptions;
 import com.alipay.sofa.jraft.rhea.options.RheaKVStoreOptions;
 import com.alipay.sofa.jraft.rhea.options.StoreEngineOptions;
@@ -55,21 +56,30 @@ public class JraftService extends ServerLifecycleComponent {
                         StatsLogger statsLogger) {
         super(NAME, conf, statsLogger);
         RheaKVStoreOptions options = JraftYamlUtil.readConfig(configPath);
+        String initialServerList;
+//        initialServerList = options.getInitialServerList();
+        initialServerList = URI.create(conf.getServerConf().getMetadataServiceUriUnchecked())
+                .getAuthority()
+                .replace(";", ",");
         final PlacementDriverOptions pdOpts = PlacementDriverOptionsConfigured.newConfigured()
                 .withFake(options.getPlacementDriverOptions().isFake()) // use a fake pd
                 .config();
         String ip = options.getStoreEngineOptions().getServerAddress().getIp();
-        int port = options.getStoreEngineOptions().getServerAddress().getPort();
+//        int port = options.getStoreEngineOptions().getServerAddress().getPort();
+        int port = conf.getServerConf().getRaftPort();
         final StoreEngineOptions storeOpts = StoreEngineOptionsConfigured.newConfigured() //
                 .withStorageType(options.getStoreEngineOptions().getStorageType())
-                .withRocksDBOptions(RocksDBOptionsConfigured.newConfigured().withDbPath(options
-                        .getStoreEngineOptions().getRocksDBOptions().getDbPath()).config())
-                .withRaftDataPath(options.getStoreEngineOptions().getRaftDataPath())
+                .withRocksDBOptions(RocksDBOptionsConfigured.newConfigured()
+//                        .withDbPath(options.getStoreEngineOptions().getRocksDBOptions().getDbPath())
+                        .withDbPath(conf.getServerConf().getLedgerDirNames()[0])
+                        .config())
+//                .withRaftDataPath(options.getStoreEngineOptions().getRaftDataPath())
+                .withRaftDataPath(conf.getServerConf().getLedgerDirNames()[0])
                 .withServerAddress(new Endpoint(ip, port))
                 .config();
         final RheaKVStoreOptions opts = RheaKVStoreOptionsConfigured.newConfigured() //
                 .withClusterName(options.getClusterName()) //
-                .withInitialServerList(options.getInitialServerList())
+                .withInitialServerList(initialServerList)
                 .withStoreEngineOptions(storeOpts) //
                 .withPlacementDriverOptions(pdOpts) //
                 .config();
@@ -82,15 +92,26 @@ public class JraftService extends ServerLifecycleComponent {
     protected void doStart() {
         jraftNode.start();
         DistributedLock<byte[]> lock = jraftNode.getRheaKVStore().getDistributedLock("init-cluster", 30, TimeUnit.SECONDS);
-        if (lock.tryLock()) {
-            try (MetadataBookieDriver driver = MetadataDrivers.getBookieDriver(URI.create(conf.getServerConf().getMetadataServiceUri()))) {
-                driver.initialize(conf.getServerConf(), null, statsLogger);
-                driver.getRegistrationManager()
-                        .initNewCluster();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            } finally {
-                lock.unlock();
+        while (true) {
+            try {
+                if (lock.tryLock()) {
+                    try (MetadataBookieDriver driver = MetadataDrivers.getBookieDriver(URI.create(conf.getServerConf().getMetadataServiceUri()))) {
+                        driver.initialize(conf.getServerConf(), null, statsLogger);
+                        driver.getRegistrationManager()
+                                .initNewCluster();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    } finally {
+                        lock.unlock();
+                    }
+                }
+                break;
+            } catch (RouteTableException e) {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException interruptedException) {
+                    break;
+                }
             }
         }
     }
