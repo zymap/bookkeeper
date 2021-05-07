@@ -161,7 +161,7 @@ public class MetadataStoreLedgerManager implements LedgerManager, Consumer<Notif
                     .collect(Collectors.toSet());
 
             return new LedgerRangeIterator() {
-                private boolean read = false;
+                private boolean read = ids.isEmpty();
 
                 @Override
                 public boolean hasNext() throws IOException {

@@ -67,7 +67,7 @@ public class MetadataStoreRegistrationClient implements RegistrationClient {
                 log.warn("Failed to poll bookies", e);
             }
         }, 0, 5000, TimeUnit.MICROSECONDS));
-        return CompletableFuture.completedFuture(null);
+        return getWritableBookies().thenAccept(listener::onBookiesChanged);
     }
 
     @Override
