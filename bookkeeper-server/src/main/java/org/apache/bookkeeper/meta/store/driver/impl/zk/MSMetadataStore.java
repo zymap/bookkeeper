@@ -31,6 +31,7 @@ import com.alipay.sofa.jraft.rhea.storage.KVEntry;
 import com.alipay.sofa.jraft.util.BytesUtil;
 import com.google.gson.Gson;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.meta.store.api.GetResult;
 import org.apache.bookkeeper.meta.store.api.MetadataStoreConfig;
 import org.apache.bookkeeper.meta.store.api.MetadataStoreException;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 public class MSMetadataStore extends AbstractMetadataStore {
     private RheaKVStore kvStore;
 
@@ -85,11 +87,14 @@ public class MSMetadataStore extends AbstractMetadataStore {
 
     @Override
     public CompletableFuture<Optional<GetResult>> get(String path) {
+        log.info("Getting content from path {}", path);
         CompletableFuture<Optional<GetResult>> future = new CompletableFuture<>();
         kvStore.get(path).whenComplete((value, throwable) -> {
             if (throwable != null) {
+                log.error("Failed to get content from path {}", path, throwable);
                 future.completeExceptionally(throwable);
             } else {
+                log.info("Get content from path {} successfully", path);
                 Value v = Value.parse(BytesUtil.readUtf8(value));
                 future.complete(Optional.of(new GetResult(v.data, getFromValue(path, v))));
             }
@@ -99,11 +104,13 @@ public class MSMetadataStore extends AbstractMetadataStore {
 
     @Override
     public CompletableFuture<Stat> put(String path, byte[] value, Optional<Long> expectedVersion) {
+        log.info("Putting content to the path {}", path);
         return put(path, value, expectedVersion, EnumSet.noneOf(CreateOption.class));
     }
 
     @Override
     protected CompletableFuture<List<String>> getChildrenFromStore(String path) {
+        log.info("Getting child from path {}", path);
         CompletableFuture<List<String>> future = new CompletableFuture<>();
         List<String> values = new ArrayList<>();
         final RheaIterator<KVEntry> it =  kvStore.iterator(path, null, 5);
@@ -114,22 +121,26 @@ public class MSMetadataStore extends AbstractMetadataStore {
                 values.add(key);
             }
         }
+        log.info("Children {} get successfully from path {}", values, path);
         future.complete(values);
         return future;
     }
 
     @Override
     protected CompletableFuture<Boolean> existsFromStore(String path) {
+        log.info("check path {} is exists", path);
         return kvStore.get(path).thenApply(value -> value != null);
     }
 
     @Override
     protected CompletableFuture<Void> storeDelete(String path, Optional<Long> expectedVersion) {
+        log.info("Delete path {}", path);
         return kvStore.delete(path).thenApply(ignore -> null);
     }
 
     @Override
     protected CompletableFuture<Stat> storePut(String path, byte[] data, Optional<Long> optExpectedVersion, EnumSet<CreateOption> options) {
+        log.info("Put content to the path {}", path);
         CompletableFuture<Stat> future = new CompletableFuture<>();
         boolean hasVersion = optExpectedVersion.isPresent();
         int expectedVersion = optExpectedVersion.orElse(-1L).intValue();
@@ -140,8 +151,10 @@ public class MSMetadataStore extends AbstractMetadataStore {
         kvStore.put(path, BytesUtil.writeUtf8(newValue.toString()))
             .whenComplete((success, throwable) -> {
                 if (!success || throwable != null) {
+                    log.info("Put content to the path failed {}", path);
                     future.completeExceptionally(new MetadataStoreException("save value for path " + path + " failed", throwable));
                 } else {
+                    log.info("Put content to the path successfully {}", path);
                     future.complete(new Stat(path, 0, now, now));
                 }
             });

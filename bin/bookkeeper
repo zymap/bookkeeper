@@ -156,7 +156,9 @@ fi
 
 #Change to BK_HOME to support relative paths
 cd "$BK_HOME"
-if [ ${COMMAND} == "bookie" ]; then
+if [ ${COMMAND} == "msbookie" ]; then
+  exec ${JAVA} ${OPTS} ${JMX_ARGS} -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -Dbookkeeper.metadata.client.drivers=org.apache.bookkeeper.meta.store.driver.impl.zk.MsZKMetadataStoreClientDriver -Dbookkeeper.metadata.bookie.drivers=org.apache.bookkeeper.meta.store.driver.impl.zk.MsZKMetadataStoreBookieDriver org.apache.bookkeeper.server.Main --conf ${BOOKIE_CONF} $@
+elif [ ${COMMAND} == "bookie" ]; then
   exec ${JAVA} ${OPTS} ${JMX_ARGS} org.apache.bookkeeper.server.Main --conf ${BOOKIE_CONF} $@
 elif [ ${COMMAND} == "autorecovery" ]; then
   exec ${JAVA} ${OPTS} ${JMX_ARGS} org.apache.bookkeeper.replication.AutoRecoveryMain --conf ${BOOKIE_CONF} $@
@@ -173,7 +175,7 @@ elif [ $COMMAND == "zookeeper" ]; then
     exec $JAVA $OPTS -Dbookkeeper.log.file=$BOOKIE_LOG_FILE org.apache.zookeeper.server.quorum.QuorumPeerMain $BOOKIE_ZK_CONF $@
 elif [ ${COMMAND} == "shell" ]; then
   ENTRY_FORMATTER_ARG="-DentryFormatterClass=${ENTRY_FORMATTER_CLASS:-org.apache.bookkeeper.util.StringEntryFormatter}"
-  exec ${JAVA} ${OPTS} ${ENTRY_FORMATTER_ARG} org.apache.bookkeeper.bookie.BookieShell -conf ${BOOKIE_CONF} $@
+  exec ${JAVA} ${OPTS} ${ENTRY_FORMATTER_ARG} -Dbookkeeper.metadata.client.drivers=org.apache.bookkeeper.meta.store.driver.impl.zk.MsZKMetadataStoreClientDriver -Dbookkeeper.metadata.bookie.drivers=org.apache.bookkeeper.meta.store.driver.impl.zk.MsZKMetadataStoreBookieDriver org.apache.bookkeeper.bookie.BookieShell -conf ${BOOKIE_CONF} $@
 elif [ ${COMMAND} == "help" ]; then
   bookkeeper_help;
 else
