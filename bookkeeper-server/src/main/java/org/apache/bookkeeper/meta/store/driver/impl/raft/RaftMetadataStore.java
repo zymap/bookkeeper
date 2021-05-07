@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.bookkeeper.meta.store.driver.impl.zk;
+package org.apache.bookkeeper.meta.store.driver.impl.raft;
 
 import com.alipay.sofa.jraft.rhea.client.DefaultRheaKVStore;
 import com.alipay.sofa.jraft.rhea.client.RheaIterator;
@@ -46,7 +46,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
-public class MSMetadataStore extends AbstractMetadataStore {
+public class RaftMetadataStore extends AbstractMetadataStore {
     private RheaKVStore kvStore;
 
     @Data
@@ -66,7 +66,7 @@ public class MSMetadataStore extends AbstractMetadataStore {
         }
     }
 
-    public MSMetadataStore(String metadataURL, MetadataStoreConfig metadataStoreConfig) {
+    public RaftMetadataStore(String metadataURL, MetadataStoreConfig metadataStoreConfig) {
         kvStore = new DefaultRheaKVStore();
         final List<RegionRouteTableOptions> regionRouteTableOptionsList = MultiRegionRouteTableOptionsConfigured
             .newConfigured() //
