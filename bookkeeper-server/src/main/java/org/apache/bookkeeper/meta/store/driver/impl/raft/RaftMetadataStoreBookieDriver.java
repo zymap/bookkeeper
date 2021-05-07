@@ -19,6 +19,6 @@ public class RaftMetadataStoreBookieDriver extends AbstractMetadataStoreBookieDr
 
     @Override
     protected MetadataStoreExtended createMetadataStore(URI metadataServiceURI) throws MetadataStoreException {
-        return new RaftMetadataStore(metadataServiceURI.getHost(), MetadataStoreConfig.builder().build());
+        return new RaftMetadataStore(metadataServiceURI.getAuthority().replace(";", ","), MetadataStoreConfig.builder().build());
     }
 }

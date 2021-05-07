@@ -71,7 +71,7 @@ public class RaftMetadataStore extends AbstractMetadataStore {
         kvStore = new DefaultRheaKVStore();
         final List<RegionRouteTableOptions> regionRouteTableOptionsList = MultiRegionRouteTableOptionsConfigured
             .newConfigured() //
-            .withInitialServerList(-1L /* default id */, "127.0.0.1:8181,127.0.0.1:8182,127.0.0.1:8183") //
+            .withInitialServerList(-1L /* default id */, metadataURL) //
             .config();
         final PlacementDriverOptions pdOpts = PlacementDriverOptionsConfigured.newConfigured() //
             .withFake(true) //
