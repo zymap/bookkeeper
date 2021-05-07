@@ -37,6 +37,7 @@ import org.apache.bookkeeper.meta.store.api.MetadataStoreConfig;
 import org.apache.bookkeeper.meta.store.api.MetadataStoreException;
 import org.apache.bookkeeper.meta.store.api.Stat;
 import org.apache.bookkeeper.meta.store.api.extended.CreateOption;
+import org.apache.bookkeeper.meta.store.driver.MetadataStoreConstants;
 import org.apache.bookkeeper.meta.store.impl.AbstractMetadataStore;
 
 import java.util.ArrayList;
@@ -117,12 +118,22 @@ public class RaftMetadataStore extends AbstractMetadataStore {
         log.info("Getting child from path {}", path);
         CompletableFuture<List<String>> future = new CompletableFuture<>();
         List<String> values = new ArrayList<>();
-        final RheaIterator<KVEntry> it =  kvStore.iterator(path, null, 5);
+        String endKey = path + MetadataStoreConstants.END_SEP;
+        final RheaIterator<KVEntry> it =  kvStore.iterator(path, endKey, 5);
         while (it.hasNext()) {
             final KVEntry kv = it.next();
             String key = BytesUtil.readUtf8(kv.getKey());
             if (key.startsWith(path)) {
-                values.add(key);
+                if (key.length() == path.length()) {
+                    // ignore the path prefix itself
+                    continue;
+                }
+                if (key.indexOf('/', path.length() + 1) >= 0) {
+                    // ignore the sub-paths
+                    continue;
+                }
+                // return path segments only
+                values.add(key.substring(path.length() + 1));
             }
         }
         log.info("Children {} get successfully from path {}", values, path);
@@ -167,5 +178,11 @@ public class RaftMetadataStore extends AbstractMetadataStore {
 
     private Stat getFromValue(String path, Value value) {
         return new Stat(path, value.version, value.createdTimestamp, value.modifiedTimestamp);
+    }
+
+    @Override
+    public void close() throws Exception {
+        this.kvStore.shutdown();
+        super.close();
     }
 }

@@ -20,10 +20,11 @@ package org.apache.bookkeeper.meta.store.driver;
 /**
  * Constants used in the Etcd metadata drivers.
  */
-final class MetadataStoreConstants {
+public final class MetadataStoreConstants {
 
     private MetadataStoreConstants() {}
 
+    // '0' > '/', could be used to indicate the end key of a path
     public static final String END_SEP = "0";
 
     public static final String LAYOUT_NODE = "layout";
