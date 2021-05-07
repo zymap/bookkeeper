@@ -96,7 +96,11 @@ public class RaftMetadataStore extends AbstractMetadataStore {
             } else {
                 log.info("Get content from path {} successfully", path);
                 Value v = Value.parse(BytesUtil.readUtf8(value));
-                future.complete(Optional.of(new GetResult(v.data, getFromValue(path, v))));
+                if (v != null) {
+                    future.complete(Optional.of(new GetResult(v.data, getFromValue(path, v))));
+                } else {
+                    future.complete(Optional.empty());
+                }
             }
         });
         return future;
