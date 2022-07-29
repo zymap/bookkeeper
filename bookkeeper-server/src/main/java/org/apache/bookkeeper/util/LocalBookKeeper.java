@@ -41,6 +41,8 @@ import org.apache.bookkeeper.bookie.BookieImpl;
 import org.apache.bookkeeper.bookie.BookieResources;
 import org.apache.bookkeeper.bookie.LedgerDirsManager;
 import org.apache.bookkeeper.bookie.LedgerStorage;
+import org.apache.bookkeeper.bookie.UncleanShutdownDetection;
+import org.apache.bookkeeper.bookie.UncleanShutdownDetectionImpl;
 import org.apache.bookkeeper.common.allocator.ByteBufAllocatorWithOomHandler;
 import org.apache.bookkeeper.common.component.ComponentInfoPublisher;
 import org.apache.bookkeeper.conf.ServerConfiguration;
@@ -76,15 +78,6 @@ public class LocalBookKeeper implements AutoCloseable {
     }
 
     int numberOfBookies;
-
-//    public LocalBookKeeper() {
-//        this(3);
-//    }
-//
-//    public LocalBookKeeper(int numberOfBookies) {
-//        this(numberOfBookies, new ServerConfiguration(), defaultLocalBookiesConfigDir, true,
-//                "test", );
-//    }
 
     public LocalBookKeeper(
             int numberOfBookies,
@@ -146,7 +139,6 @@ public class LocalBookKeeper implements AutoCloseable {
         return server;
     }
 
-    @SuppressWarnings("deprecation")
     private void initializeZookeeper() throws IOException {
         LOG.info("Instantiate ZK Client");
         //initialize the zk client with values
@@ -183,7 +175,6 @@ public class LocalBookKeeper implements AutoCloseable {
         }
     }
 
-    @SuppressWarnings("deprecation")
     private void runBookies()
             throws Exception {
         LOG.info("Starting Bookie(s)");
@@ -221,6 +212,7 @@ public class LocalBookKeeper implements AutoCloseable {
         serializeLocalBookieConfig(baseConfWithCorrectZKServers, "baseconf.conf");
     }
 
+    @SuppressWarnings("deprecation")
     private void runBookie(int bookieIndex) throws Exception {
         File journalDirs;
         if (null == baseConf.getJournalDirNameWithoutDefault()) {
@@ -295,6 +287,7 @@ public class LocalBookKeeper implements AutoCloseable {
                 true, "test", null, defaultLocalBookiesConfigDir);
     }
 
+    @SuppressWarnings("deprecation")
     private static LocalBookKeeper getLocalBookiesInternal(ServerConfiguration conf,
                                                              String zkHost,
                                                              int zkPort,
@@ -358,12 +351,13 @@ public class LocalBookKeeper implements AutoCloseable {
                 for (int i = 1; i < values.length; i++) {
                     concatenatedValue.append(",").append(values[i]);
                 }
-                writer.println(key + "=" + concatenatedValue.toString());
+                writer.println(key + "=" + concatenatedValue);
             }
         }
     }
 
     public static void main(String[] args) {
+        System.setProperty("zookeeper.4lw.commands.whitelist", "*");
         try {
             if (args.length < 1) {
                 usage();
@@ -406,6 +400,7 @@ public class LocalBookKeeper implements AutoCloseable {
                     numBookies, true, false, "test", zkDataDir,
                     localBookiesConfigDirName)) {
                 try {
+                    lb.start();
                     while (true) {
                         Thread.sleep(1000);
                     }
@@ -524,6 +519,7 @@ public class LocalBookKeeper implements AutoCloseable {
             LedgerStorage storage = BookieResources.createLedgerStorage(
                     conf, ledgerManager, ledgerDirsManager, indexDirsManager,
                     NullStatsLogger.INSTANCE, allocator);
+            UncleanShutdownDetection shutdownManager = new UncleanShutdownDetectionImpl(ledgerDirsManager);
 
             final ComponentInfoPublisher componentInfoPublisher = new ComponentInfoPublisher();
             final Supplier<BookieServiceInfo> bookieServiceInfoProvider =
@@ -531,9 +527,10 @@ public class LocalBookKeeper implements AutoCloseable {
 
             componentInfoPublisher.startupFinished();
             bookie = new BookieImpl(conf, registrationManager, storage, diskChecker,
-                    ledgerDirsManager, indexDirsManager,
-                    NullStatsLogger.INSTANCE, allocator, bookieServiceInfoProvider);
-            server = new BookieServer(conf, bookie, NullStatsLogger.INSTANCE, allocator);
+                                    ledgerDirsManager, indexDirsManager,
+                                    NullStatsLogger.INSTANCE, allocator, bookieServiceInfoProvider);
+            server = new BookieServer(conf, bookie, NullStatsLogger.INSTANCE, allocator,
+                                      shutdownManager);
         }
 
         void start() throws Exception {

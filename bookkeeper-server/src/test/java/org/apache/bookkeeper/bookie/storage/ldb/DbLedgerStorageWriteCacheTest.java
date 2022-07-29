@@ -33,6 +33,7 @@ import org.apache.bookkeeper.bookie.BookieException.OperationRejectedException;
 import org.apache.bookkeeper.bookie.BookieImpl;
 import org.apache.bookkeeper.bookie.LedgerDirsManager;
 import org.apache.bookkeeper.bookie.TestBookieImpl;
+import org.apache.bookkeeper.bookie.storage.EntryLogger;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.meta.LedgerManager;
@@ -53,22 +54,23 @@ public class DbLedgerStorageWriteCacheTest {
 
         @Override
         protected SingleDirectoryDbLedgerStorage newSingleDirectoryDbLedgerStorage(ServerConfiguration conf,
-                LedgerManager ledgerManager, LedgerDirsManager ledgerDirsManager, LedgerDirsManager indexDirsManager,
-                StatsLogger statsLogger, ScheduledExecutorService gcExecutor,
-                long writeCacheSize, long readCacheSize)
+            LedgerManager ledgerManager, LedgerDirsManager ledgerDirsManager, LedgerDirsManager indexDirsManager,
+            EntryLogger entryLogger, StatsLogger statsLogger, ScheduledExecutorService gcExecutor,
+            long writeCacheSize, long readCacheSize, int readAheadCacheBatchSize)
                 throws IOException {
             return new MockedSingleDirectoryDbLedgerStorage(conf, ledgerManager, ledgerDirsManager, indexDirsManager,
-                                                            statsLogger, allocator, gcExecutor, writeCacheSize,
-                                                            readCacheSize);
+                entryLogger, statsLogger, allocator, gcExecutor, writeCacheSize,
+                readCacheSize, readAheadCacheBatchSize);
         }
 
         private static class MockedSingleDirectoryDbLedgerStorage extends SingleDirectoryDbLedgerStorage {
             public MockedSingleDirectoryDbLedgerStorage(ServerConfiguration conf, LedgerManager ledgerManager,
-                    LedgerDirsManager ledgerDirsManager, LedgerDirsManager indexDirsManager, StatsLogger statsLogger,
+                    LedgerDirsManager ledgerDirsManager, LedgerDirsManager indexDirsManager, EntryLogger entryLogger,
+                    StatsLogger statsLogger,
                     ByteBufAllocator allocator, ScheduledExecutorService gcExecutor, long writeCacheSize,
-                    long readCacheSize) throws IOException {
-                super(conf, ledgerManager, ledgerDirsManager, indexDirsManager,
-                      statsLogger, allocator, gcExecutor, writeCacheSize, readCacheSize);
+                    long readCacheSize, int readAheadCacheBatchSize) throws IOException {
+                super(conf, ledgerManager, ledgerDirsManager, indexDirsManager, entryLogger,
+                      statsLogger, allocator, gcExecutor, writeCacheSize, readCacheSize, readAheadCacheBatchSize);
             }
 
           @Override

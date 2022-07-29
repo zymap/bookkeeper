@@ -29,6 +29,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.PrimitiveIterator.OfLong;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -44,6 +45,7 @@ import org.apache.bookkeeper.common.util.Watcher;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.meta.LedgerManager;
+import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.junit.After;
 import org.junit.Before;
@@ -118,7 +120,7 @@ public class SyncThreadTest {
                 }
             };
 
-        final SyncThread t = new SyncThread(conf, listener, storage, checkpointSource);
+        final SyncThread t = new SyncThread(conf, listener, storage, checkpointSource, NullStatsLogger.INSTANCE);
         t.startCheckpoint(Checkpoint.MAX);
         assertTrue("Checkpoint should have been called",
                    checkpointCalledLatch.await(10, TimeUnit.SECONDS));
@@ -166,7 +168,7 @@ public class SyncThreadTest {
                     checkpointCount.incrementAndGet();
                 }
             };
-        final SyncThread t = new SyncThread(conf, listener, storage, checkpointSource);
+        final SyncThread t = new SyncThread(conf, listener, storage, checkpointSource, NullStatsLogger.INSTANCE);
         t.startCheckpoint(Checkpoint.MAX);
         while (checkpointCount.get() == 0) {
             Thread.sleep(flushInterval);
@@ -216,7 +218,7 @@ public class SyncThreadTest {
                     throw new RuntimeException("Fatal error in sync thread");
                 }
             };
-        final SyncThread t = new SyncThread(conf, listener, storage, checkpointSource);
+        final SyncThread t = new SyncThread(conf, listener, storage, checkpointSource, NullStatsLogger.INSTANCE);
         t.startCheckpoint(Checkpoint.MAX);
         assertTrue("Should have called fatal error", fatalLatch.await(10, TimeUnit.SECONDS));
         t.shutdown();
@@ -248,7 +250,7 @@ public class SyncThreadTest {
                     throw new NoWritableLedgerDirException("Disk full error in sync thread");
                 }
             };
-        final SyncThread t = new SyncThread(conf, listener, storage, checkpointSource);
+        final SyncThread t = new SyncThread(conf, listener, storage, checkpointSource, NullStatsLogger.INSTANCE);
         t.startCheckpoint(Checkpoint.MAX);
         assertTrue("Should have disk full error", diskFullLatch.await(10, TimeUnit.SECONDS));
         t.shutdown();
@@ -299,6 +301,11 @@ public class SyncThreadTest {
         @Override
         public boolean ledgerExists(long ledgerId) throws IOException {
             return true;
+        }
+
+        @Override
+        public boolean entryExists(long ledgerId, long entryId) throws IOException {
+            return false;
         }
 
         @Override
@@ -378,6 +385,38 @@ public class SyncThreadTest {
         public OfLong getListOfEntriesOfLedger(long ledgerId) {
             return null;
         }
+
+        @Override
+        public void setLimboState(long ledgerId) throws IOException {
+            throw new UnsupportedOperationException(
+                    "Limbo state only supported for DbLedgerStorage");
+        }
+
+        @Override
+        public boolean hasLimboState(long ledgerId) throws IOException {
+            throw new UnsupportedOperationException(
+                    "Limbo state only supported for DbLedgerStorage");
+        }
+
+        @Override
+        public void clearLimboState(long ledgerId) throws IOException {
+            throw new UnsupportedOperationException(
+                    "Limbo state only supported for DbLedgerStorage");
+        }
+
+        @Override
+        public EnumSet<StorageState> getStorageStateFlags() throws IOException {
+            return EnumSet.noneOf(StorageState.class);
+        }
+
+        @Override
+        public void setStorageStateFlag(StorageState flag) throws IOException {
+        }
+
+        @Override
+        public void clearStorageStateFlag(StorageState flag) throws IOException {
+        }
+
     }
 
 }

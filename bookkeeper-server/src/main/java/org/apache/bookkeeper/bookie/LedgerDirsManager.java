@@ -20,6 +20,7 @@
  */
 package org.apache.bookkeeper.bookie;
 
+import static org.apache.bookkeeper.bookie.BookKeeperServerStats.LD_NUM_DIRS;
 import static org.apache.bookkeeper.bookie.BookKeeperServerStats.LD_WRITABLE_DIRS;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -102,6 +103,20 @@ public class LedgerDirsManager {
             @Override
             public Number getSample() {
                 return writableLedgerDirectories.size();
+            }
+        });
+
+        final int numDirs = dirs.length;
+        statsLogger.registerGauge(LD_NUM_DIRS, new Gauge<Number>() {
+
+            @Override
+            public Number getDefaultValue() {
+                return numDirs;
+            }
+
+            @Override
+            public Number getSample() {
+                return numDirs;
             }
         });
     }
@@ -419,6 +434,19 @@ public class LedgerDirsManager {
          */
         default void allDisksFull(boolean highPriorityWritesAllowed) {}
 
+        /**
+         * This will be notified whenever all disks are detected as not full.
+         *
+         */
+        default void allDisksWritable() {}
+
+        /**
+         * This will be notified whenever any disks are detected as full.
+         *
+         * @param highPriorityWritesAllowed the parameter indicates we are still have disk spaces for high priority
+         *          *                                  writes even disks are detected as "full"
+         */
+        default void anyDiskFull(boolean highPriorityWritesAllowed) {}
         /**
          * This will notify the fatal errors.
          */

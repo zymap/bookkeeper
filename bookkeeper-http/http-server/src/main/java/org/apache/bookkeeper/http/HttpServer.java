@@ -82,6 +82,7 @@ public interface HttpServer {
         GC,
         GC_DETAILS,
         BOOKIE_STATE,
+        BOOKIE_STATE_READONLY,
         BOOKIE_IS_READY,
         BOOKIE_INFO,
 
@@ -104,6 +105,16 @@ public interface HttpServer {
      * Start the HTTP server on given port.
      */
     boolean startServer(int port);
+
+    /**
+     * Start the HTTP server on given port and host.
+     */
+    boolean startServer(int port, String host);
+
+    /**
+     * Start the HTTP server on given port and host.
+     */
+    boolean startServer(int port, String host, HttpServerConfiguration httpServerConfiguration);
 
     /**
      * Stop the HTTP server.

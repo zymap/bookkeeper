@@ -21,6 +21,7 @@
 package org.apache.bookkeeper.http.servlet;
 
 import org.apache.bookkeeper.http.HttpServer;
+import org.apache.bookkeeper.http.HttpServerConfiguration;
 import org.apache.bookkeeper.http.HttpServiceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,8 @@ public class BookieServletHttpServer implements HttpServer {
   static final Logger LOG = LoggerFactory.getLogger(BookieServletHttpServer.class);
   private static HttpServiceProvider bookieHttpServiceProvider;
   private static int listenPort = -1;
+  private static String listenHost = "0.0.0.0";
+
 
   public static HttpServiceProvider getBookieHttpServiceProvider(){
     return bookieHttpServiceProvider;
@@ -41,6 +44,10 @@ public class BookieServletHttpServer implements HttpServer {
    **/
   public static int getListenPort(){
     return listenPort;
+  }
+
+  public static String getListenHost() {
+    return listenHost;
   }
 
   @Override
@@ -56,10 +63,27 @@ public class BookieServletHttpServer implements HttpServer {
   public static synchronized void setPort(int port){
     listenPort = port;
   }
+
+  public static void setHost(String host) {
+    listenHost = host;
+  }
+
   @Override
   public boolean startServer(int port) {
     setPort(port);
     return true;
+  }
+
+  @Override
+  public boolean startServer(int port, String host) {
+    setPort(port);
+    setHost(host);
+    return true;
+  }
+
+  @Override
+  public boolean startServer(int port, String host, HttpServerConfiguration httpServerConfiguration) {
+    return startServer(port, host);
   }
 
   @Override

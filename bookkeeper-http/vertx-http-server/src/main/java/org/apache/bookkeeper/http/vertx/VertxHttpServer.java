@@ -23,6 +23,9 @@ package org.apache.bookkeeper.http.vertx;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.ClientAuth;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 
@@ -33,6 +36,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.bookkeeper.http.HttpRouter;
 import org.apache.bookkeeper.http.HttpServer;
+import org.apache.bookkeeper.http.HttpServerConfiguration;
 import org.apache.bookkeeper.http.HttpServiceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +48,7 @@ public class VertxHttpServer implements HttpServer {
 
     static final Logger LOG = LoggerFactory.getLogger(VertxHttpServer.class);
 
-    private Vertx vertx;
+    private final Vertx vertx;
     private boolean isRunning;
     private HttpServiceProvider httpServiceProvider;
     private int listeningPort = -1;
@@ -64,6 +68,16 @@ public class VertxHttpServer implements HttpServer {
 
     @Override
     public boolean startServer(int port) {
+        return startServer(port, "0.0.0.0");
+    }
+
+    @Override
+    public boolean startServer(int port, String host) {
+        return startServer(port, host, new HttpServerConfiguration());
+    }
+
+    @Override
+    public boolean startServer(int port, String host, HttpServerConfiguration httpServerConfiguration) {
         CompletableFuture<AsyncResult<io.vertx.core.http.HttpServer>> future = new CompletableFuture<>();
         VertxHttpHandlerFactory handlerFactory = new VertxHttpHandlerFactory(httpServiceProvider);
         Router router = Router.router(vertx);
@@ -81,8 +95,21 @@ public class VertxHttpServer implements HttpServer {
         vertx.deployVerticle(new AbstractVerticle() {
             @Override
             public void start() throws Exception {
+                HttpServerOptions httpServerOptions = new HttpServerOptions();
+                if (httpServerConfiguration.isTlsEnable()) {
+                    httpServerOptions.setSsl(true);
+                    httpServerOptions.setClientAuth(ClientAuth.REQUIRED);
+                    JksOptions keyStoreOptions = new JksOptions();
+                    keyStoreOptions.setPath(httpServerConfiguration.getKeyStorePath());
+                    keyStoreOptions.setPassword(httpServerConfiguration.getKeyStorePassword());
+                    httpServerOptions.setKeyStoreOptions(keyStoreOptions);
+                    JksOptions trustStoreOptions = new JksOptions();
+                    trustStoreOptions.setPath(httpServerConfiguration.getTrustStorePath());
+                    trustStoreOptions.setPassword(httpServerConfiguration.getTrustStorePassword());
+                    httpServerOptions.setTrustStoreOptions(trustStoreOptions);
+                }
                 LOG.info("Starting Vertx HTTP server on port {}", port);
-                vertx.createHttpServer().requestHandler(router).listen(port, future::complete);
+                vertx.createHttpServer(httpServerOptions).requestHandler(router).listen(port, host, future::complete);
             }
         });
         try {

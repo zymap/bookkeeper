@@ -25,7 +25,7 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.InspectExecResponse;
 import com.github.dockerjava.api.model.ContainerNetwork;
 import com.github.dockerjava.api.model.Frame;
-
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -54,9 +54,9 @@ public class DockerUtils {
     private static final Logger LOG = LoggerFactory.getLogger(DockerUtils.class);
 
     private static File getTargetDirectory(String containerId) {
-        String base = System.getProperty("maven.buildDirectory");
+        String base = System.getProperty("gradle.buildDirectory");
         if (base == null) {
-            base = "target";
+            base = "build";
         }
         File directory = new File(base + "/container-logs/" + containerId);
         if (!directory.exists() && !directory.mkdirs()) {
@@ -105,6 +105,7 @@ public class DockerUtils {
         }
     }
 
+    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
     public static void dumpContainerDirToTargetCompressed(DockerClient dockerClient, String containerId,
                                                           String path) {
         final int readBlockSize = 10000;

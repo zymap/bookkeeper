@@ -69,6 +69,8 @@ public abstract class BookieException extends Exception {
             return new MetadataStoreException();
         case Code.UnknownBookieIdException:
             return new UnknownBookieIdException();
+        case Code.DataUnknownException:
+            return new DataUnknownException();
         default:
             return new BookieIllegalOpException();
         }
@@ -91,6 +93,8 @@ public abstract class BookieException extends Exception {
         int UnknownBookieIdException = -107;
         int OperationRejectedException = -108;
         int CookieExistsException = -109;
+        int EntryLogMetadataMapException = -110;
+        int DataUnknownException = -111;
     }
 
     public int getCode() {
@@ -124,6 +128,9 @@ public abstract class BookieException extends Exception {
         case Code.CookieExistsException:
             err = "Cookie already exists";
             break;
+        case Code.EntryLogMetadataMapException:
+            err = "Error in accessing Entry-log metadata map";
+            break;
         case Code.MetadataStoreException:
             err = "Error performing metadata operations";
             break;
@@ -132,6 +139,9 @@ public abstract class BookieException extends Exception {
             break;
         case Code.OperationRejectedException:
             err = "Operation rejected";
+            break;
+        case Code.DataUnknownException:
+            err = "Unable to respond, ledger is in unknown state";
             break;
         default:
             err = "Invalid operation";
@@ -156,6 +166,10 @@ public abstract class BookieException extends Exception {
     public static class BookieUnauthorizedAccessException extends BookieException {
         public BookieUnauthorizedAccessException() {
             super(Code.UnauthorizedAccessException);
+        }
+
+        public BookieUnauthorizedAccessException(String reason) {
+            super(Code.UnauthorizedAccessException, reason);
         }
     }
 
@@ -255,6 +269,15 @@ public abstract class BookieException extends Exception {
     }
 
     /**
+     * Signal that error while accessing entry-log metadata map.
+     */
+    public static class EntryLogMetadataMapException extends BookieException {
+        public EntryLogMetadataMapException(Throwable cause) {
+            super(Code.EntryLogMetadataMapException, cause);
+        }
+    }
+
+    /**
      * Signals that an exception occurs on upgrading a bookie.
      */
     public static class UpgradeException extends BookieException {
@@ -324,4 +347,25 @@ public abstract class BookieException extends Exception {
         }
     }
 
+    /**
+     * Signal when a ledger is in a limbo state and certain operations
+     * cannot be performed on it.
+     */
+    public static class DataUnknownException extends BookieException {
+        public DataUnknownException() {
+            super(Code.DataUnknownException);
+        }
+
+        public DataUnknownException(Throwable t) {
+            super(Code.DataUnknownException, t);
+        }
+
+        public DataUnknownException(String reason) {
+            super(Code.DataUnknownException, reason);
+        }
+
+        public DataUnknownException(String reason, Throwable t) {
+            super(Code.DataUnknownException, reason, t);
+        }
+    }
 }
