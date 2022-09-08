@@ -58,6 +58,7 @@ class ReadEntryProcessor extends PacketProcessorBase<ReadRequest> {
 
     @Override
     protected void processPacket() {
+        LOGGER.info("Thread name {} @ processPacket", Thread.currentThread().getName());
         if (LOG.isDebugEnabled()) {
             LOG.debug("Received new read request: {}", request);
         }
@@ -82,6 +83,8 @@ class ReadEntryProcessor extends PacketProcessorBase<ReadRequest> {
                 LOG.debug("##### Read entry ##### {} -- ref-count: {}", data.readableBytes(), data.refCnt());
             }
             if (fenceResult != null) {
+                LOG.info("Fence result is not empty");
+                LOGGER.info("Thread name {} @ processPacket, fence result", Thread.currentThread().getName());
                 handleReadResultForFenceRead(fenceResult, data, startTimeNanos);
                 return;
             }
@@ -115,6 +118,7 @@ class ReadEntryProcessor extends PacketProcessorBase<ReadRequest> {
         if (LOG.isTraceEnabled()) {
             LOG.trace("Read entry rc = {} for {}", errorCode, request);
         }
+        LOGGER.info("Thread name {} @ processPacket, send response", Thread.currentThread().getName());
         sendResponse(data, errorCode, startTimeNanos);
     }
 
