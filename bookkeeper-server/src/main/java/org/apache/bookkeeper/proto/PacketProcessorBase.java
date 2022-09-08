@@ -18,7 +18,13 @@
 package org.apache.bookkeeper.proto;
 
 import io.netty.channel.Channel;
+
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelPromise;
 import org.apache.bookkeeper.proto.BookieProtocol.Request;
 import org.apache.bookkeeper.stats.OpStatsLogger;
 import org.apache.bookkeeper.util.MathUtils;
@@ -136,6 +142,8 @@ abstract class PacketProcessorBase<T extends Request> extends SafeRunnable {
      */
     protected void sendResponseAndWait(int rc, Object response, OpStatsLogger statsLogger) {
         try {
+            LOGGER.info("Thread name {} @ send response and wait | {}", Thread.currentThread().getName(),
+                response.getClass().getName());
             channel.writeAndFlush(response).await();
         } catch (InterruptedException e) {
             return;
