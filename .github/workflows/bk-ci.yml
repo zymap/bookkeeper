@@ -166,10 +166,19 @@ jobs:
           if [[ ! -z "${{ matrix.module }}" ]]; then
             projects_list="-pl ${{ matrix.module }}"
           fi
+          mvn -B -nsu test $projects_list ${{ matrix.test_args }}
+
+      - name: Code coverage - ${{ matrix.step_name }}
+        if: ${{ always() }}
+        run: |
+          projects_list=
+          if [[ ! -z "${{ matrix.module }}" ]]; then
+            projects_list="-pl ${{ matrix.module }}"
+          fi
           mvn -Pcode-coverage -B -nsu $projects_list verify ${{ matrix.test_args }}
 
       - name: Upload coverage to Codecov
-        if: ${{ matrix.flag }} != 'shell'
+        if: ${{ always() && (matrix.flag != 'shell') }}
         uses: codecov/codecov-action@v3
         with:
           flags: ${{ matrix.flag }}
