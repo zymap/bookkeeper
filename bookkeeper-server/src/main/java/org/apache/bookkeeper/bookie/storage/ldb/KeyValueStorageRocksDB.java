@@ -59,7 +59,7 @@ import org.slf4j.LoggerFactory;
  */
 public class KeyValueStorageRocksDB implements KeyValueStorage {
 
-    static KeyValueStorageFactory factory = (defaultBasePath, subPath, dbConfigType, conf) ->
+    public static KeyValueStorageFactory factory = (defaultBasePath, subPath, dbConfigType, conf) ->
             new KeyValueStorageRocksDB(defaultBasePath, subPath, dbConfigType, conf);
 
     private final RocksDB db;

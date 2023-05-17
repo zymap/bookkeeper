@@ -20,6 +20,7 @@ package org.apache.bookkeeper.bookie;
 
 import static org.apache.bookkeeper.meta.MetadataDrivers.runFunctionWithLedgerManagerFactory;
 import com.google.common.annotations.VisibleForTesting;
+import io.netty.buffer.ByteBuf;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -37,7 +38,11 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.apache.bookkeeper.bookie.storage.ldb.EntryLocationIndex;
+import org.apache.bookkeeper.bookie.storage.ldb.KeyValueStorageRocksDB;
+import org.apache.bookkeeper.bookie.storage.ldb.LedgerMetadataIndex;
 import org.apache.bookkeeper.client.LedgerEntry;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.apache.bookkeeper.common.annotation.InterfaceAudience.Private;
@@ -63,6 +68,7 @@ import org.apache.bookkeeper.tools.cli.commands.bookie.ListFilesOnDiscCommand;
 import org.apache.bookkeeper.tools.cli.commands.bookie.ListLedgersCommand;
 import org.apache.bookkeeper.tools.cli.commands.bookie.LocalConsistencyCheckCommand;
 import org.apache.bookkeeper.tools.cli.commands.bookie.ReadJournalCommand;
+import org.apache.bookkeeper.tools.cli.commands.bookie.ReadLedgerAndEntryFromFileCommand;
 import org.apache.bookkeeper.tools.cli.commands.bookie.ReadLedgerCommand;
 import org.apache.bookkeeper.tools.cli.commands.bookie.ReadLogCommand;
 import org.apache.bookkeeper.tools.cli.commands.bookie.ReadLogMetadataCommand;
@@ -89,6 +95,7 @@ import org.apache.bookkeeper.tools.cli.commands.cookie.GenerateCookieCommand;
 import org.apache.bookkeeper.tools.cli.commands.cookie.GetCookieCommand;
 import org.apache.bookkeeper.tools.cli.commands.cookie.UpdateCookieCommand;
 import org.apache.bookkeeper.tools.framework.CliFlags;
+import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.bookkeeper.util.EntryFormatter;
 import org.apache.bookkeeper.util.LedgerIdFormatter;
 import org.apache.bookkeeper.util.Tool;
@@ -2173,6 +2180,71 @@ public class BookieShell implements Tool {
         }
     }
 
+    static final String READ = "read";
+    class ReadCmd extends MyCommand {
+        Options opts = new Options();
+
+        public ReadCmd() {
+            super( READ);
+            opts.addOption("ledger", true, "LedgerId");
+            opts.addOption("entry", true, "entryId");
+            opts.addOption("list", false, "list");
+            opts.addOption("scan", false, "scan");
+            opts.addOption("missingledgerfile", true, "missingledgerfile");
+            opts.addOption("entryoutputfile", true, "entryoutputfile");
+            opts.addOption("scanstart", true, "scanstart");
+            opts.addOption("scanend", true, "scanend");
+        }
+        @Override
+        Options getOptions() {
+            return opts;
+        }
+
+        @Override
+        String getDescription() {
+            return "read description";
+        }
+
+        @Override
+        String getUsage() {
+            return READ;
+        }
+
+        @Override
+        int runCmd(CommandLine cmdLine) throws Exception {
+            System.out.println("Run command");
+            ReadLedgerAndEntryFromFileCommand cmd = new ReadLedgerAndEntryFromFileCommand();
+            ReadLedgerAndEntryFromFileCommand.ReadLedgerFromFileFlag flag = new ReadLedgerAndEntryFromFileCommand
+                .ReadLedgerFromFileFlag();
+
+            if (cmdLine.hasOption("ledger")) {
+                flag.ledgerId(Long.parseLong(cmdLine.getOptionValue("ledger")));
+            }
+            if (cmdLine.hasOption("entry")) {
+                flag.entryId(Long.parseLong(cmdLine.getOptionValue("entry")));
+            }
+            if (cmdLine.hasOption("missingledgerfile")) {
+                flag.ledgerFile(cmdLine.getOptionValue("missingledgerfile"));
+            }
+            if (cmdLine.hasOption("entryoutputfile")) {
+                flag.entryOutputFile(cmdLine.getOptionValue("entryoutputfile"));
+            }
+
+            if (cmdLine.hasOption("scanstart")) {
+                flag.scanStart(Long.parseLong(cmdLine.getOptionValue("scanstart")));
+            }
+
+            if (cmdLine.hasOption("scanend")) {
+                flag.scanEnd(Long.parseLong(cmdLine.getOptionValue("scanend")));
+            }
+            flag.list(cmdLine.hasOption("list"));
+            flag.scan(cmdLine.hasOption("scan"));
+            cmd.apply(bkConf, flag);
+            return 0;
+        }
+
+    }
+
     final Map<String, Command> commands = new HashMap<>();
 
     {
@@ -2227,6 +2299,7 @@ public class BookieShell implements Tool {
             new GetCookieCommand().asShellCommand(CMD_GET_COOKIE, bkConf));
         commands.put(CMD_GENERATE_COOKIE,
             new GenerateCookieCommand().asShellCommand(CMD_GENERATE_COOKIE, bkConf));
+        commands.put(READ, new ReadCmd());
     }
 
     @Override
@@ -2369,8 +2442,12 @@ public class BookieShell implements Tool {
         }
         LOG.debug("Using entry formatter {}", shell.entryFormatter.getClass());
 
-        int res = shell.run(cmdLine.getArgs());
-        System.exit(res);
+        int res = -1;
+        try {
+            res = shell.run(cmdLine.getArgs());
+        } finally {
+            System.exit(res);
+        }
     }
 
     private synchronized void initEntryLogger() throws IOException {

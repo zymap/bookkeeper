@@ -32,6 +32,7 @@ import org.apache.bookkeeper.tools.cli.commands.bookie.ListFilesOnDiscCommand;
 import org.apache.bookkeeper.tools.cli.commands.bookie.ListLedgersCommand;
 import org.apache.bookkeeper.tools.cli.commands.bookie.LocalConsistencyCheckCommand;
 import org.apache.bookkeeper.tools.cli.commands.bookie.ReadJournalCommand;
+import org.apache.bookkeeper.tools.cli.commands.bookie.ReadLedgerAndEntryFromFileCommand;
 import org.apache.bookkeeper.tools.cli.commands.bookie.ReadLedgerCommand;
 import org.apache.bookkeeper.tools.cli.commands.bookie.ReadLogCommand;
 import org.apache.bookkeeper.tools.cli.commands.bookie.ReadLogMetadataCommand;
@@ -74,6 +75,7 @@ public class BookieCommandGroup extends CliCommandGroup<BKFlags> {
         .addCommand(new LocalConsistencyCheckCommand())
         .addCommand(new FlipBookieIdCommand())
         .addCommand(new RegenerateInterleavedStorageIndexFileCommand())
+        .addCommand(new ReadLedgerAndEntryFromFileCommand())
         .build();
 
     public BookieCommandGroup() {
