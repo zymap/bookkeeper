@@ -202,22 +202,21 @@ public class ReadLedgerAndEntryFromFileCommand
                 }
 
                 long entryId = 0;
-                LOG.info("Writing ledger {} entries, the last entry is {}", ledgerId, lastEntryId);
                 while (entryId < lastEntryId) {
-                    long location = entryLocationIndex.getLocation(ledgerId, entryId);
-                    ByteBuf buf;
                     try {
+                        long location = entryLocationIndex.getLocation(ledgerId, entryId);
+                        ByteBuf buf;
                         buf = entryLogger.readEntry(ledgerId, entryId, location);
+                        byte[] bytes = new byte[buf.readableBytes()];
+                        buf.readBytes(bytes);
+                        buf.release();
+                        writeEntry(ledgerId, entryId,
+                            Base64.getEncoder().encodeToString(bytes), outputPath);
                     } catch (Exception e) {
-                        LOG.error("Failed to get the entry id {} for ledger {}", entryId, ledgers);
-                        continue;
+                        LOG.error("Failed to get the entry id {} for ledger {}", entryId, ledgerId);
+                    } finally {
+                        entryId++;
                     }
-                    byte[] bytes = new byte[buf.readableBytes()];
-                    buf.readBytes(bytes);
-                    buf.release();
-                    writeEntry(ledgerId, entryId,
-                        Base64.getEncoder().encodeToString(bytes), outputPath);
-                    entryId++;
                 }
 
                 BufferedWriter writer = writeMap.get(ledgerId);
