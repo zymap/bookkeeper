@@ -205,7 +205,13 @@ public class ReadLedgerAndEntryFromFileCommand
                 LOG.info("Writing ledger {} entries, the last entry is {}", ledgerId, lastEntryId);
                 while (entryId < lastEntryId) {
                     long location = entryLocationIndex.getLocation(ledgerId, entryId);
-                    ByteBuf buf = entryLogger.readEntry(ledgerId, entryId, location);
+                    ByteBuf buf;
+                    try {
+                        buf = entryLogger.readEntry(ledgerId, entryId, location);
+                    } catch (Exception e) {
+                        LOG.error("Failed to get the entry id {} for ledger {}", entryId, ledgers);
+                        continue;
+                    }
                     byte[] bytes = new byte[buf.readableBytes()];
                     buf.readBytes(bytes);
                     buf.release();
