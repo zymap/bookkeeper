@@ -145,6 +145,7 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
             bkc.createLedger(2, 2, DigestType.MAC, "".getBytes());
             fail("Should fail to create a ledger since there isn't enough bookies alive.");
         } catch (BKException.BKNotEnoughBookiesException bke) {
+            LOG.error("Expected error: code {}, msg {}", bke.getCode(), bke.getMessage(), bke);
             // Expected.
         }
 
