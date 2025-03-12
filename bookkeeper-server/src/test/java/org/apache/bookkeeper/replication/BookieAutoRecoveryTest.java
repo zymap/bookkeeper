@@ -633,6 +633,7 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         return zkc.exists(znode, new Watcher() {
             @Override
             public void process(WatchedEvent event) {
+                LOG.info("Received the url ledger node events: {}", event.getType());
                 if (event.getType() == EventType.NodeDeleted) {
                     LOG.info("Received Ledger rereplication completion event :"
                             + event.getType());
